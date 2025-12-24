@@ -7,6 +7,56 @@ A_INSTRUCTION = 0
 C_INSTRUCTION = 1
 L_INSTRUCTION = 2
 
+VALID_DEST = [
+    "M",
+    "D",
+    "DM",
+    "A",
+    "AM",
+    "AD",
+    "ADM"
+]
+
+VALID_COMP = [
+    "0",
+    "1",
+    "-1",
+    "D",
+    "A",
+    "!D",
+    "!A",
+    "-D",
+    "-A",
+    "D+1",
+    "A+1",
+    "D-1",
+    "A-1",
+    "D+A",
+    "D-A",
+    "A-D",
+    "D&A",
+    "D|A",
+    "M",
+    "!M",
+    "-M",
+    "M+1",
+    "M-1",
+    "D+M",
+    "D-M",
+    "M-D",
+    "D&M",
+    "D|M"
+]
+
+VALID_JUMP = [
+    "JGT",
+    "JEQ",
+    "JGE",
+    "JLT",
+    "JNE",
+    "JLE",
+    "JMP"
+]
 
 class Parse:
     def __init__(self, program_name: str):
@@ -27,6 +77,7 @@ class Parse:
 
             while (self.hasMoreLines()):
                 self.index += 1
+                self.lines_list[self.index] = self.lines_list[self.index].replace(" ", "")
                 current_line = self.lines_list[self.index]
                 # skipping comments and blank lines
                 # This is a bit fragile 
@@ -72,7 +123,8 @@ class Parse:
                 index += 1
             index += 1
 
-            while (index < len(current_line) and current_line[index] != '/' and current_line[index] != ' '):
+            # index + 1 to avoid adding the \n to the str
+            while (index + 1 < len(current_line) and current_line[index] != '/'):
                 symbol += current_line[index]
                 index += 1
 
@@ -84,21 +136,39 @@ class Parse:
 
     def get_dest(self) -> str:
         if (self.instruction_type == C_INSTRUCTION):
-            dest = ""
+            current_line = self.lines_list[self.index]
+            if ('=' in current_line):
+                dest = ""
+                index = 0
+                while (current_line[index] == ' '):
+                    index += 1
+
+                while (current_line[index] != ' ' and current_line[index] != '='):
+                    dest += current_line[index]
+                    index += 1
+
+                if (dest in VALID_DEST):
+                    return dest
+                else:
+                    print(f"{dest} is not a valid dest")
+                    return None
+            else:
+                print("This C_INSTRUCTION Does not contain a dest")
+                return None
         else:
             print(f"{self.instruction_type} instruction type does not have a dest")
             return None
 
     def get_comp(self) -> str:
         if (self.instruction_type == C_INSTRUCTION):
-            dest = ""
+            comp = ""
         else:
             print(f"{self.instruction_type} instruction type does not have a comp")
             return None
 
     def get_jump(self) -> str:
         if (self.instruction_type == C_INSTRUCTION):
-            dest = ""
+            jump = ""
         else:
             print(f"{self.instruction_type} instruction type does not have a jump")
             return None
@@ -116,5 +186,6 @@ if __name__ == "__main__":
 
     parser = Parse(program_name)
     while (parser.advance() != None):
-        print(parser.lines_list[parser.index])
-        # print(parser.get_symbol())
+        print(parser.lines_list[parser.index], end = "")
+        # print(parser.get_dest())
+        print(parser.get_symbol())
