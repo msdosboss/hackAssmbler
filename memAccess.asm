@@ -1,6 +1,6 @@
 // D = 17
 @17
-D=A
+D=A // Testing inline comment with = ; 
 
 //RAM[100] = 17
 @100
@@ -11,4 +11,4 @@ M=D
 D=M
 @100
 M=D
-M = D
+M = D; JMP

@@ -77,7 +77,6 @@ class Parse:
 
             while (self.hasMoreLines()):
                 self.index += 1
-                self.lines_list[self.index] = self.lines_list[self.index].replace(" ", "")
                 current_line = self.lines_list[self.index]
                 # skipping comments and blank lines
                 # This is a bit fragile 
@@ -86,6 +85,12 @@ class Parse:
                 else:
                     # means we are at the end of the count
                     if (i + 1 == count):
+                        self.lines_list[self.index] = self.lines_list[self.index].replace(" ", "")
+                        self.lines_list[self.index] = self.lines_list[self.index].replace("\n", "")
+                        # removes inline comments if they exist
+                        comment_index = self.lines_list[self.index].find('/')
+                        if (comment_index != -1):
+                            self.lines_list[self.index] = self.lines_list[self.index][:comment_index]
                         # declaring what type of instruction is on this line
                         # also this is pretty fragile
                         # I should make it better
@@ -104,7 +109,7 @@ class Parse:
             print("No lines?")
             return None
 
-    def get_symbol(self) -> str:
+    def getSymbol(self) -> str:
         current_line = self.lines_list[self.index]
         index = 0
         symbol = ""
@@ -123,8 +128,7 @@ class Parse:
                 index += 1
             index += 1
 
-            # index + 1 to avoid adding the \n to the str
-            while (index + 1 < len(current_line) and current_line[index] != '/'):
+            while (index < len(current_line)):
                 symbol += current_line[index]
                 index += 1
 
@@ -134,16 +138,14 @@ class Parse:
 
         return symbol
 
-    def get_dest(self) -> str:
+    def getDest(self) -> str:
         if (self.instruction_type == C_INSTRUCTION):
             current_line = self.lines_list[self.index]
             if ('=' in current_line):
                 dest = ""
                 index = 0
-                while (current_line[index] == ' '):
-                    index += 1
 
-                while (current_line[index] != ' ' and current_line[index] != '='):
+                while (current_line[index] != '='):
                     dest += current_line[index]
                     index += 1
 
@@ -153,22 +155,57 @@ class Parse:
                     print(f"{dest} is not a valid dest")
                     return None
             else:
-                print("This C_INSTRUCTION Does not contain a dest")
                 return None
         else:
             print(f"{self.instruction_type} instruction type does not have a dest")
             return None
 
-    def get_comp(self) -> str:
+    def getComp(self) -> str:
         if (self.instruction_type == C_INSTRUCTION):
             comp = ""
+            current_line = self.lines_list[self.index]
+            index =  0
+            if ('=' in current_line):
+                # iterating past the dest
+                while (current_line[index] != '='):
+                    index += 1
+                index += 1
+
+            while(index < len(current_line) and current_line[index] != ';'):
+                comp += current_line[index]
+                index += 1
+
+            if (comp in VALID_COMP):
+                return comp
+            else:
+                print(f"{comp} is not a valid comp")
+                return None
         else:
             print(f"{self.instruction_type} instruction type does not have a comp")
             return None
 
-    def get_jump(self) -> str:
+    def getJump(self) -> str:
         if (self.instruction_type == C_INSTRUCTION):
             jump = ""
+            current_line = self.lines_list[self.index]
+            if (';' in current_line):
+                index = 0
+                # moving the index onto the jmp instruction
+                while (current_line[index] != ';'):
+                    index += 1
+                index += 1
+
+                while (index < len(current_line)):
+                    jump += current_line[index]
+                    index += 1
+
+                if (jump in VALID_JUMP):
+                    return jump
+                else:
+                    print(f"{jump} is not a valid jump")
+                    return None
+            else:
+                return None
         else:
             print(f"{self.instruction_type} instruction type does not have a jump")
             return None
@@ -186,6 +223,8 @@ if __name__ == "__main__":
 
     parser = Parse(program_name)
     while (parser.advance() != None):
-        print(parser.lines_list[parser.index], end = "")
-        # print(parser.get_dest())
-        print(parser.get_symbol())
+        print(parser.lines_list[parser.index])
+        # print(parser.getDest())
+        # print(parser.getSymbol())
+        # print(parser.getComp())
+        print(parser.getJump())
