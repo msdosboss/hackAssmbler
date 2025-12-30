@@ -8,6 +8,8 @@ from parser import L_INSTRUCTION
 from code import DEST_DICT
 from code import COMP_DICT
 from code import JUMP_DICT
+from symbolTable import SymbolTable
+
 
 if __name__ == "__main__":
     program_name = ""
@@ -21,17 +23,34 @@ if __name__ == "__main__":
             program_name = "memAccess.asm"
 
     parser = Parse(program_name)
+    symbol_table = SymbolTable()
 
     instructions = []
+    instruction_count = -1
+    new_variable_address = 16
     while (parser.hasMoreLines() is True):
+        instruction_count += 1
         parser.advance()
         if (parser.instruction_type == A_INSTRUCTION):
             symbol = parser.getSymbol()
             # convert dec str to bin str
-            symbol = int(symbol)
-            symbol = bin(symbol)
+            try:
+                symbol_int = int(symbol)
+                symbol = bin(symbol_int)
+
+            # this exception is for symbols (meaning none consts numbers)
+            except ValueError:
+                if (symbol_table.contains(symbol)):
+                    address = symbol_table.getAddress(symbol)
+                    symbol = bin(address)
+
+                else:
+                    symbol_table.addEntry(symbol, new_variable_address)
+                    symbol = bin(new_variable_address)
+                    new_variable_address += 1
+            
             # removing leading 0b
-            symbol = symbol[2:]
+            symbol = symbol[2:]    
             instruction_len = 16
             symbol = symbol.zfill(instruction_len)
 
@@ -45,17 +64,25 @@ if __name__ == "__main__":
             instruction = "111"
             instruction += COMP_DICT[comp]
 
-            if (dest is not None):
+            if (dest is None):
+                instruction += "000"
+            else:
                 instruction += DEST_DICT[dest]
-            else:
-                instruction += "000"
 
-            if (jump is not None):
-                instruction += JUMP_DICT[jump]
-            else:
+            if (jump is None):
                 instruction += "000"
+            else:
+                instruction += JUMP_DICT[jump]
 
             instructions.append(instruction)            
+
+        # L_INSTRUCTION
+        else:
+            symbol = parser.getSymbol()
+            symbol_table.addEntry(symbol, instruction_count)
+            # L_INSTRUCTIONS don't exist in the machine language so I do not want to count for instruction_count
+            instruction_count -= 1
+            
 
     print(instructions)
 
