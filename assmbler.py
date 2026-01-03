@@ -1,5 +1,6 @@
 import sys
 import os.path
+import copy
 
 from parser import Parse
 from parser import A_INSTRUCTION
@@ -9,6 +10,21 @@ from code import DEST_DICT
 from code import COMP_DICT
 from code import JUMP_DICT
 from symbolTable import SymbolTable
+
+
+def doesSymbolExist(symbol : str, parser : Parse, symbol_table : SymbolTable, instruction_count : int) -> bool:
+    tmp_parser = copy.deepcopy(parser)
+    while (tmp_parser.hasMoreLines()):
+        tmp_parser.advance()
+        instruction_count += 1
+        if (tmp_parser.instruction_type == L_INSTRUCTION):
+            if (tmp_parser.getSymbol() == symbol):
+                symbol = parser.getSymbol()
+                symbol_table.addEntry(symbol, instruction_count)
+                return True
+
+    return False
+
 
 
 if __name__ == "__main__":
@@ -45,9 +61,13 @@ if __name__ == "__main__":
                     symbol = bin(address)
 
                 else:
-                    symbol_table.addEntry(symbol, new_variable_address)
-                    symbol = bin(new_variable_address)
-                    new_variable_address += 1
+                    if (doesSymbolExist(symbol, parser, symbol_table, instruction_count)):
+                        address = symbol_table.getAddress(symbol)
+                        symbol = bin(address)
+                    else:
+                        symbol_table.addEntry(symbol, new_variable_address)
+                        symbol = bin(new_variable_address)
+                        new_variable_address += 1
             
             # removing leading 0b
             symbol = symbol[2:]    
@@ -79,7 +99,8 @@ if __name__ == "__main__":
         # L_INSTRUCTION
         else:
             symbol = parser.getSymbol()
-            symbol_table.addEntry(symbol, instruction_count)
+            if (not symbol_table.contains(symbol)):
+                symbol_table.addEntry(symbol, instruction_count)
             # L_INSTRUCTIONS don't exist in the machine language so I do not want to count for instruction_count
             instruction_count -= 1
             
