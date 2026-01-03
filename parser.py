@@ -217,7 +217,7 @@ if __name__ == "__main__":
         program_name = "memAccess.asm"
     else:
         program_name = sys.argv[1]
-        if (not os.path.exist(program_name)):
+        if (not os.path.exists(program_name)):
             # fallback
             program_name = "memAccess.asm"
 
