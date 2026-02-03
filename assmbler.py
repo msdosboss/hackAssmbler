@@ -81,6 +81,8 @@ if __name__ == "__main__":
             dest = parser.getDest()
             jump = parser.getJump()
 
+            print(comp)
+
             instruction = "111"
             instruction += COMP_DICT[comp]
 

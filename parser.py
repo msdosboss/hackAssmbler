@@ -62,6 +62,8 @@ class Parse:
     def __init__(self, program_name: str):
         file = open(program_name, "r")
         self.lines_list = file.readlines()
+        # removes all blank newlines
+        self.lines_list = [s for s in self.lines_list if s != '\n']
         file.close()
         self.index = -1
         self.instruction_type = None
