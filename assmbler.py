@@ -22,6 +22,8 @@ def doesSymbolExist(symbol : str, parser : Parse, symbol_table : SymbolTable, in
                 symbol = parser.getSymbol()
                 symbol_table.addEntry(symbol, instruction_count)
                 return True
+            else:
+                instruction_count -= 1
 
     return False
 
