@@ -111,7 +111,7 @@ if __name__ == "__main__":
 
     print(instructions)
 
-    with open('b.out', "w") as f:
+    with open(f"{sys.argv[1].replace("/", "")}/b.out", "w") as f:
         for instruction in instructions:
             f.write(instruction + '\n')
 
